@@ -1,0 +1,34 @@
+
+name: Update Cargo.lock
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-lockfile:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install stable Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Update lockfile
+        run: cargo check -p pm_engine --all-targets
+
+      - name: Commit updated lockfile
+        shell: pwsh
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Cargo.lock
+          if (git diff --cached --quiet) {
+            Write-Host "No changes"
+            exit 0
+          }
+          git commit -m "Update Cargo.lock for WebPKI TLS roots"
+          git push
